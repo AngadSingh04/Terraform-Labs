@@ -20,8 +20,8 @@ resource "aws_vpc" "vpc" {
 resource "aws_instance" "demoEC2" {
   ami                         = "ami-08b5b3a93ed654d19"
   instance_type               = "t2.micro"
-  associate_public_ip_address = true
-  subnet_id                   = "" // Apni subnet id 
+  associate_public_ip_address = true //public ip ke liye -->  .public_ip
+  subnet_id                   = "subnet-0942424db7b2369f3" //apni subnet id 
 
   tags = {
     Name        = "AngadEC2_1"
