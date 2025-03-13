@@ -1,6 +1,9 @@
 provider "aws" {
   region = "us-east-1"
 }
+#single line comment
+//single line comment
+/*multi line comment */
 
 #Retrieve the list of AZs in the current AWS region
 data "aws_availability_zones" "available" {}
@@ -20,7 +23,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_instance" "demoEC2" {
   ami                         = "ami-08b5b3a93ed654d19"
   instance_type               = "t2.micro"
-  associate_public_ip_address = true //public ip ke liye -->  .public_ip
+  associate_public_ip_address = true                       //public ip ke liye -->  .public_ip
   subnet_id                   = "subnet-0942424db7b2369f3" //apni subnet id 
 
   tags = {
