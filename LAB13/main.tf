@@ -307,90 +307,9 @@ resource "aws_instance" "web_server" {
 # Terraform Resource Block - To Build EC2 instance in Public Subnet
 resource "aws_instance" "web_server_2" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
+  instance_type = "t2.micro"
   subnet_id     = aws_subnet.public_subnets["public_subnet_2"].id
   tags = {
     Name = "Web EC2 Server 2"
   }
-}
-
-module "server" {
-  source    = "./modules/server"
-  ami       = data.aws_ami.ubuntu.id
-  subnet_id = aws_subnet.public_subnets["public_subnet_3"].id
-  security_groups = [
-    aws_security_group.vpc-ping.id,
-    aws_security_group.ingress-ssh.id,
-    aws_security_group.vpc-web.id
-  ]
-}
-
-module "server_subnet_1" {
-  source      = "./modules/web_server"
-  ami         = data.aws_ami.ubuntu.id
-  key_name    = aws_key_pair.generated.key_name
-  user        = "ubuntu"
-  private_key = tls_private_key.generated.private_key_pem
-  subnet_id   = aws_subnet.public_subnets["public_subnet_1"].id
-  security_groups = [aws_security_group.vpc-ping.id,
-    aws_security_group.ingress-ssh.id,
-  aws_security_group.vpc-web.id]
-}
-
-output "public_ip" {
-  value = module.server.public_ip
-}
-
-output "public_dns" {
-  value = module.server.public_dns
-}
-
-output "public_ip_server_subnet_1" {
-  value = module.server_subnet_1.public_ip
-}
-
-output "public_dns_server_subnet_1" {
-  value = module.server_subnet_1.public_dns
-}
-
-output "size" {
-  value = module.server.size
-}
-
-module "autoscaling" {
-  source  = "terraform-aws-modules/autoscaling/aws"
-  version = "8.0.1"
-
-  # Autoscaling group
-  name = "myasg"
-
-  vpc_zone_identifier = [aws_subnet.private_subnets["private_subnet_1"].id,
-    aws_subnet.private_subnets["private_subnet_2"].id,
-  aws_subnet.private_subnets["private_subnet_3"].id]
-  min_size         = 0
-  max_size         = 1
-  desired_capacity = 1
-
-  # Launch template
-  image_id      = data.aws_ami.ubuntu.id
-  instance_type = "t3.micro"
-  instance_name = "asg-instance"
-  key_name      = aws_key_pair.generated.key_name
-
-  tags = {
-    Name = "Web EC2 Server 2"
-  }
-
-}
-
-output "autoscaling_maxSize" {
-  value = module.autoscaling.autoscaling_group_max_size
-}
-
-module "s3-bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "4.6.1"
-}
-output "s3_bucket_name" {
-  value = module.s3-bucket.s3_bucket_bucket_domain_name
 }
