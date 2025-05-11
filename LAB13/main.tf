@@ -9,6 +9,30 @@ provider "aws" {
   region = "us-east-1"
 }
 
+locals {
+  team        = "api_mgmt_dev"
+  application = "corp_api"
+  server_name = "ec2-${var.environment}-api-${var.variables_sub_az}"
+}
+
+locals {
+  service_name = "Automation"
+  app_team     = "Cloud Team"
+  createdby    = "terraform"
+}
+
+locals {
+  # Common tags to be assigned to all resources
+  common_tags = {
+    Name      = local.server_name
+    Owner     = local.team
+    App       = local.application
+    Service   = local.service_name
+    AppTeam   = local.app_team
+    CreatedBy = local.createdby
+  }
+}
+
 #Retrieve the list of AZs in the current AWS region
 data "aws_availability_zones" "available" {}
 data "aws_region" "current" {}
@@ -107,6 +131,7 @@ resource "aws_internet_gateway" "internet_gateway" {
 
 #Create EIP for NAT Gateway
 resource "aws_eip" "nat_gateway_eip" {
+  domain     = "vpc"
   depends_on = [aws_internet_gateway.internet_gateway]
   tags = {
     Name = "demo_igw_eip"
@@ -293,23 +318,57 @@ resource "aws_instance" "web_server" {
       "sudo sh /tmp/assets/setup-web.sh",
     ]
   }
-
-  tags = {
-    Name = "Web EC2 Server"
-  }
+  tags = local.common_tags
 
   lifecycle {
     ignore_changes = [security_groups]
   }
-
 }
 
 # Terraform Resource Block - To Build EC2 instance in Public Subnet
 resource "aws_instance" "web_server_2" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  instance_type = "t3.micro"
   subnet_id     = aws_subnet.public_subnets["public_subnet_2"].id
   tags = {
     Name = "Web EC2 Server 2"
   }
+}
+
+module "server" {
+  source          = "./modules/server"
+  ami             = data.aws_ami.ubuntu.id
+  size            = "t3.micro"
+  subnet_id       = aws_subnet.public_subnets["public_subnet_3"].id
+  security_groups = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id]
+}
+
+module "server_subnet_1" {
+  source          = "./modules/web_server"
+  ami             = data.aws_ami.ubuntu.id
+  key_name        = aws_key_pair.generated.key_name
+  user            = "ubuntu"
+  private_key     = tls_private_key.generated.private_key_pem
+  subnet_id       = aws_subnet.public_subnets["public_subnet_1"].id
+  security_groups = [aws_security_group.vpc-ping.id, aws_security_group.ingress-ssh.id, aws_security_group.vpc-web.id]
+}
+
+output "public_ip" {
+  value = module.server.public_ip
+}
+
+output "public_dns" {
+  value = module.server.public_dns
+}
+
+output "size" {
+  value = module.server.size
+}
+
+output "public_ip_server_subnet_1" {
+  value = module.server_subnet_1.public_ip
+}
+
+output "public_dns_server_subnet_1" {
+  value = module.server_subnet_1.public_dns
 }

@@ -3,17 +3,13 @@ output "Hello-World" {
   value       = "Hello Angad"
 }
 
-output "vpc-id" {
-  description = "primary vpc id"
-  value       = aws_vpc.vpc.id
+output "public_ip" {
+  description = "this is the public ip of the instance"
+  value = aws_instance.web_server.public_ip
 }
 
-output "Vpc_information" {
-  description = "information regarding vpc"
-  value       = "Your ${aws_vpc.vpc.tags.Environment} id is ${aws_vpc.vpc.id}!!"
-}
-
-output "EC2_information" {
-  description = "information regarding instance"
-  value       = "Click here : http://${aws_instance.demoEC2.public_ip}"
+output "aws_arn" {
+  description = "this is the ARN of the instance"
+  value       = aws_instance.web_server.arn
+  sensitive = true
 }

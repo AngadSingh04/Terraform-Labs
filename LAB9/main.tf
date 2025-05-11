@@ -20,7 +20,7 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-resource "aws_instance" "demoEC2" {
+resource "aws_instance" "web_server" {
   ami                         = "ami-08b5b3a93ed654d19"
   instance_type               = "t2.micro"
   associate_public_ip_address = true                       //public ip ke liye -->  .public_ip
