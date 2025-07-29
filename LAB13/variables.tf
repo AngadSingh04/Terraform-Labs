@@ -51,3 +51,16 @@ variable "variables_sub_auto_ip" {
   type        = bool
   default     = true
 }
+
+variable "availability_zones" {
+  type = list(string)
+  default = [ "us-east-1a","us-east1b", "us-east-1c", "us-east-1d", "us-east-1e" ]
+}
+
+variable "ip"{
+  type = map(string)
+  default = {
+    "prod" = "10.0.10.0"
+    "dev" = "10.0.20.0"
+  }
+}
